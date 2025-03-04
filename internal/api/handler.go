@@ -62,6 +62,7 @@ func (a *APIClient) Read(conn *websocket.Conn, natsClient *nats.NatsClient) {
 			continue
 		}
 
+		fmt.Printf("message is: %s \n", newMsg.ID)
 		natsClient.Publish(newMsg.RecipientID, &newMsg)
 	}
 }

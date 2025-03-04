@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/bob17/msg/internal/db"
@@ -27,9 +28,10 @@ func GetNatClient() *nats.NatsClient {
 func AddClient(c *models.Client) {
 	mu.Lock()
 	defer mu.Unlock()
+	fmt.Printf("client id: %s", c.ID)
 	clients[c.ID] = c
 	natsInstance.Subscriber(c.ID, func(msg *models.Message) {
-		c.Send <- []byte(msg.Content)
+		c.Send <- []byte(msg.Content) // fix here
 	})
 }
 
