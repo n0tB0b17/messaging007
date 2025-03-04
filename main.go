@@ -11,11 +11,23 @@ import (
 	"time"
 
 	"github.com/bob17/msg/internal/api"
+	"github.com/bob17/msg/internal/config"
+	"github.com/bob17/msg/internal/db"
+	"github.com/bob17/msg/internal/nats"
+	"github.com/bob17/msg/internal/service"
 )
 
 func main() {
-	port := 8585
-	s := api.NewApiServer(port)
+	cfg := config.GetConfig()
+	s := api.NewApiServer(cfg.Port)
+	db := db.NewDB()
+	natClient, err := nats.GetNatsClient(cfg.NATURL)
+	if err != nil {
+		fmt.Printf("unable to fetch NAT client: %v \n", err)
+	}
+
+	service.InitializeService(db, natClient)
+
 	go func(s *api.APIServer) {
 		if err := s.Start(); err != nil && err != http.ErrServerClosed {
 			log.Panic("unable to start the web server...")

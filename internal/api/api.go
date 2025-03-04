@@ -25,6 +25,8 @@ func (s *APIServer) Start() error {
 	addr := fmt.Sprintf("%s:%d", "", s.Port)
 	router := mux.NewRouter()
 
+	router.HandleFunc("/api/v1/messaging/ws", SocketRoute)
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
