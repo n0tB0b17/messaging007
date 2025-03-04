@@ -1,13 +1,19 @@
 package service
 
 import (
+	"sync"
+
 	"github.com/bob17/msg/internal/db"
 	"github.com/bob17/msg/internal/models"
 	"github.com/bob17/msg/internal/nats"
 )
 
-var inMemDBInstance *db.DB
-var natsInstance *nats.NatsClient
+var (
+	inMemDBInstance *db.DB
+	natsInstance    *nats.NatsClient
+	mu              sync.Mutex
+	clients         = make(map[string]*models.Client)
+)
 
 func InitializeService(db *db.DB, nat *nats.NatsClient) {
 	inMemDBInstance = db
@@ -19,8 +25,16 @@ func GetNatClient() *nats.NatsClient {
 }
 
 func AddClient(c *models.Client) {
-	inMemDBInstance.AddClients(c)
+	mu.Lock()
+	defer mu.Unlock()
+	clients[c.ID] = c
 	natsInstance.Subscriber(c.ID, func(msg *models.Message) {
 		c.Send <- []byte(msg.Content)
 	})
+}
+
+func RemoveClient(c *models.Client) {
+	mu.Lock()
+	defer mu.Unlock()
+	delete(clients, c.ID)
 }
